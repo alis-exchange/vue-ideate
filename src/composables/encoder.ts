@@ -2,16 +2,19 @@
  * Options for configuring the Ideate feedback behavior.
  */
 export interface IdeateFeedbackOptions {
+  /** The user's input or feedback in the case of pre-populating it. */
+  bodyText?: string
   /** Text to prepend to the user's input or feedback. */
   prependText?: string
   /** Text to append to the user's input or feedback. */
   appendText?: string
   /**
    * Automated behavior to trigger when the link is opened.
-   * - 'auto-submit': Automatically submits the feedback.
-   * - 'auto-record': Automatically starts recording.
+   * - 'auto-submit': Automatically submits the feedback. Requires at least `bodyText` to be populated.
+   * - 'auto-record-screen': Automatically starts a screen recording.
+   * - 'auto-record-voice': Automatically starts recording a voice note.
    */
-  behaviour?: 'auto-submit' | 'auto-record'
+  behaviour?: 'auto-submit' | 'auto-record-screen' | 'auto-record-voice'
 }
 
 /**
@@ -21,13 +24,13 @@ export interface IdeateFeedbackOptions {
  * @param opts - Optional configuration for the feedback session.
  * @returns An object containing methods to generate the URL and parse parameters.
  */
-export function useIdeateFeedback(token: string, opts?: IdeateFeedbackOptions) {
+export function useIdeateFeedback(opts?: IdeateFeedbackOptions) {
   /**
    * Generates the full Ideate feedback URL with the token and encoded options.
    *
    * @returns The complete URL string.
    */
-  const generateUrl = () => {
+  const generateUrl = (token: string) => {
     let params = ''
     if (opts) {
       const json = JSON.stringify(opts)
