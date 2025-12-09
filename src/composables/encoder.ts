@@ -15,6 +15,8 @@ export interface IdeateFeedbackOptions {
    * - 'auto-record-voice': Automatically starts recording a voice note.
    */
   behaviour?: 'auto-submit' | 'auto-record-screen' | 'auto-record-voice'
+  /** Media to add to the user's input or feedback. */
+  mediaUrl?: string
 }
 
 /**

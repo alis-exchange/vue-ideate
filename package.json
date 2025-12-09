@@ -1,5 +1,5 @@
 {
-  "name": "vue-ideate",
+  "name": "vue-ideate-alpha",
   "version": "1.0.0",
   "description": "Vue 3 composables and components to help integrate Alis Ideate into your products.",
   "type": "module",
@@ -34,5 +34,8 @@
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vue": "^3.5.25"
+  },
+  "dependencies": {
+    "buffer": "^6.0.3"
   }
 }
