@@ -66,8 +66,8 @@ export function useIdeateFeedback() {
    *
    * @param token - The authentication or session token to include in the URL.
    */
-  const open = (token: string) => {
-    const url = generateUrl(token)
+  const open = (token: string, opts?: IdeateFeedbackOptions) => {
+    const url = generateUrl(token, opts)
     const windowFeatures = 'left=100,top=100,width=400,height=400,popup=true'
     window.open(url, '_blank', windowFeatures)
   }
