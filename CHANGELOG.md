@@ -1,3 +1,13 @@
+# [1.1.0](https://github.com/alis-exchange/vue-ideate/compare/v1.0.7...v1.1.0) (2025-12-10)
+
+
+### Features
+
+* refactor composables and remove encoder; add ideate composable for feedback management ([0e1e1b9](https://github.com/alis-exchange/vue-ideate/commit/0e1e1b9fe04e275909530636b3c7874441e3d0f8))
+* refactor composables and remove encoder; add ideate composable for feedback management ([f47ada2](https://github.com/alis-exchange/vue-ideate/commit/f47ada287505797823e326e21e5096ae1933a4b0))
+
+
+
 ## [1.0.7](https://github.com/alis-exchange/vue-ideate/compare/v1.0.6...v1.0.7) (2025-12-10)
 
 
