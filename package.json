@@ -1,20 +1,25 @@
 {
-  "name": "vue-ideate-alpha",
-  "version": "1.0.4",
+  "name": "@alis-build/vue-ideate",
+  "version": "1.0.5",
   "description": "Vue 3 composables and components to help integrate Alis Ideate into your products.",
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "types": {
+        "import": "./dist/index.d.ts",
+        "require": "./dist/index.d.cts"
+      },
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
@@ -26,7 +31,14 @@
     "vue3"
   ],
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alis-exchange/vue-ideate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alis-exchange/vue-ideate/issues"
+  },
   "peerDependencies": {
     "vue": "^3.0.0"
   },

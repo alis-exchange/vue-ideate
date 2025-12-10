@@ -1,0 +1,85 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - "v*" # Triggers when a tag starting with 'v' is pushed
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository with full history
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Ensure full commit history is fetched, including tags
+
+      # Step 2: Determine the branch
+      - name: Determine the branch
+        id: extract_branch
+        run: |
+          # Try to find the branch based on commit history
+          BRANCH=$(git for-each-ref --format='%(refname:short)' $(git rev-parse --verify HEAD) | grep 'heads/' | head -n 1 | sed 's|heads/||')
+          echo "Branch: $BRANCH"
+          if [ -z "$BRANCH" ]; then
+            echo "No branch found, defaulting to 'main'"
+            BRANCH="main"
+          fi
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+      # Step 3: Set up Node.js for changelog generation
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Step 4: Install conventional-changelog-cli
+      - name: Install conventional-changelog-cli
+        run: |
+          npm install -g conventional-changelog-cli
+
+      # Step 5: Generate changelog
+      - name: Generate changelog
+        run: |
+          conventional-changelog -p angular -i CHANGELOG.md -s -r 0
+
+      # Step 6: Commit and push the changelog
+      - name: Commit and push changelog
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "chore: update changelog for ${GITHUB_REF#refs/tags/}" || echo "No changes to commit"
+          
+          # Push to the determined branch
+          git push origin HEAD:${{ steps.extract_branch.outputs.branch }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    needs: changelog
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+          scope: "@alis-build"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
