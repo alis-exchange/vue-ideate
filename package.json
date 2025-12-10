@@ -1,6 +1,6 @@
 {
   "name": "vue-ideate-alpha",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Vue 3 composables and components to help integrate Alis Ideate into your products.",
   "type": "module",
   "main": "./dist/index.js",
