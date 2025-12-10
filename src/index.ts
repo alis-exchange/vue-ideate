@@ -7,3 +7,4 @@ export * from './composables/ideate';
 export * from './composables/fileUploader';
 export * from './composables/screenRecorder';
 export * from './composables/screenshot';
+export * from './composables/voiceRecorder';

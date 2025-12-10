@@ -1,17 +1,17 @@
 import { computed, ref } from 'vue'
 
-const CONTENT_TYPE_VIDEO = 'video/webm'
+const CONTENT_TYPE_AUDIO = 'audio/webm'
 
 /**
- * Composable for recording the user's screen and microphone.
+ * Composable for recording the user's microphone.
  */
-export function useScreenRecorder() {
+export function useVoiceRecorder() {
   const isRecording = ref(false)
   const recordingDuration = ref(0)
   const recordingTimer = ref<number | undefined>(undefined)
-  const videoChunks = ref<Blob[]>([])
-  const videoBlob = ref<Blob | undefined>(undefined)
-  const videoUrl = ref<string | undefined>(undefined)
+  const audioChunks = ref<Blob[]>([])
+  const audioBlob = ref<Blob | undefined>(undefined)
+  const audioUrl = ref<string | undefined>(undefined)
   const mediaStream = ref<MediaStream | undefined>(undefined)
   const mediaRecorder = ref<MediaRecorder | undefined>(undefined)
   const volumeLevel = ref(0)
@@ -43,37 +43,18 @@ export function useScreenRecorder() {
   }
 
   /**
-   * Prompts the user for screen and microphone access, then starts the recording.
+   * Prompts the user for microphone access, then starts the recording.
    */
   async function start() {
     try {
-      const displayStream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          displaySurface: 'browser',
-          width: { max: 1280 },
-          height: { max: 720 },
-        },
-        preferCurrentTab: true,
-        selfBrowserSurface: 'include',
-        surfaceSwitching: 'include',
-        monitorTypeSurfaces: 'exclude',
-      } as never)
       const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true })
 
-      // --- Audio analysis ---
-      audioContext.value = new AudioContext()
-      const source = audioContext.value.createMediaStreamSource(audioStream)
-      analyser.value = audioContext.value.createAnalyser()
-      analyser.value.fftSize = 256
-      source.connect(analyser.value)
-      // --- End audio analysis ---
-
-      mediaStream.value = new MediaStream([...displayStream.getTracks(), ...audioStream.getTracks()])
+      mediaStream.value = audioStream
       
-      // When the user stops sharing their screen via the browser UI, stop the recording.
-      const videoTrack = displayStream.getVideoTracks()[0]
-      if (videoTrack) {
-          videoTrack.onended = () => {
+      // When the user stops sharing their audio via the browser UI, stop the recording.
+      const audioTrack = audioStream.getAudioTracks()[0]
+      if (audioTrack) {
+          audioTrack.onended = () => {
               stop()
           }
       }
@@ -81,10 +62,18 @@ export function useScreenRecorder() {
       // Start the actual recording process
       if (!mediaStream.value) return
 
+      // --- Audio analysis ---
+      audioContext.value = new AudioContext()
+      const source = audioContext.value.createMediaStreamSource(mediaStream.value)
+      analyser.value = audioContext.value.createAnalyser()
+      analyser.value.fftSize = 256
+      source.connect(analyser.value)
+      // --- End audio analysis ---
+
       mediaRecorder.value = new MediaRecorder(mediaStream.value.clone())
-      videoChunks.value = []
-      videoUrl.value = undefined
-      videoBlob.value = undefined
+      audioChunks.value = []
+      audioUrl.value = undefined
+      audioBlob.value = undefined
       recordingDuration.value = 0
 
       recordingTimer.value = window.setInterval(() => {
@@ -93,14 +82,14 @@ export function useScreenRecorder() {
 
       mediaRecorder.value.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          videoChunks.value.push(event.data)
+          audioChunks.value.push(event.data)
         }
       }
 
       mediaRecorder.value.onstop = () => {
-        const blob = new Blob(videoChunks.value, { type: CONTENT_TYPE_VIDEO })
-        videoBlob.value = blob
-        videoUrl.value = URL.createObjectURL(blob)
+        const blob = new Blob(audioChunks.value, { type: CONTENT_TYPE_AUDIO })
+        audioBlob.value = blob
+        audioUrl.value = URL.createObjectURL(blob)
         if (recordingTimer.value) {
           clearInterval(recordingTimer.value)
           recordingTimer.value = undefined
@@ -117,7 +106,7 @@ export function useScreenRecorder() {
   }
 
   /**
-   * Stops the screen recording.
+   * Stops the audio recording.
    */
   function stop() {
     if (isRecording.value) {
@@ -130,9 +119,9 @@ export function useScreenRecorder() {
    * Deletes the current recording data.
    */
   function deleteRecording() {
-    videoUrl.value = undefined
-    videoChunks.value = []
-    videoBlob.value = undefined
+    audioUrl.value = undefined
+    audioChunks.value = []
+    audioBlob.value = undefined
     clearMediaStream()
   }
 
@@ -179,10 +168,10 @@ export function useScreenRecorder() {
     recordingDuration,
     /** The formatted duration of the current recording (MM:SS). */
     recordingDurationFormatted,
-    /** A URL for the recorded video, suitable for playback in a <video> tag. */
-    videoUrl,
-    /** The Blob object of the recorded video. */
-    videoBlob,
+    /** A URL for the recorded audio, suitable for playback in a <audio> tag. */
+    audioUrl,
+    /** The Blob object of the recorded audio. */
+    audioBlob,
     /** A reactive number between 0 and 1 representing the current volume. */
     volumeLevel,
     start,

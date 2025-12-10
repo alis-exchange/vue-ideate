@@ -49,6 +49,7 @@
     "vue": "^3.5.25"
   },
   "dependencies": {
+    "@vueuse/core": "^14.1.0",
     "buffer": "^6.0.3"
   }
 }

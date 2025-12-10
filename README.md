@@ -77,6 +77,7 @@ const {
   isRecording,
   recordingDurationFormatted,
   videoUrl,
+  volumeLevel,
   start,
   stop,
   deleteRecording,
@@ -99,6 +100,47 @@ const {
   </div>
 </template>
 ```
+
+The `volumeLevel` is a reactive number between 0 and 1 that represents the current microphone volume. You can use it to create a visual indicator that the microphone is active.
+
+### `useVoiceRecorder`
+
+Provides functions and reactive state for recording the user's voice.
+
+**Example:**
+```vue
+<script setup>
+import { useVoiceRecorder } from '@alis-build/vue-ideate';
+
+const {
+  isRecording,
+  recordingDurationFormatted,
+  audioUrl,
+  volumeLevel,
+  start,
+  stop,
+  deleteRecording,
+} = useVoiceRecorder();
+</script>
+
+<template>
+  <div>
+    <div v-if="isRecording">
+      Recording... {{ recordingDurationFormatted }}
+      <button @click="stop">Stop</button>
+    </div>
+    <div v-else>
+      <button @click="start">Record Voice</button>
+    </div>
+    <div v-if="audioUrl">
+      <audio :src="audioUrl" controls></audio>
+      <button @click="deleteRecording">Delete Recording</button>
+    </div>
+  </div>
+</template>
+```
+
+The `volumeLevel` is a reactive number between 0 and 1 that represents the current microphone volume. You can use it to create a visual indicator that the microphone is active.
 
 ### `useScreenshot`
 
@@ -250,6 +292,42 @@ function sendTextFeedback(userText: string) {
 - Timestamp: ${new Date().toISOString()}`,
   });
   openPopup(token);
+}
+```
+
+### 4. Voice Message Feedback
+
+This workflow is ideal for capturing voice feedback.
+
+```typescript
+import { useIdeate, useVoiceRecorder, useFileUploader } from '@alis-build/vue-ideate';
+
+const token = 'YOUR_COLLECTION_TOKEN';
+const { openPopup, setOptions } = useIdeate();
+const { start, stop, audioBlob } = useVoiceRecorder();
+const { upload } = useFileUploader();
+
+async function captureAndSendVoiceFeedback() {
+  await start();
+  
+  // Wait for the user to finish recording and stop it
+  // For example, you can have a button that calls stop()
+}
+
+async function onRecordingStopped() {
+  if (audioBlob.value) {
+    const downloadUrl = await upload(audioBlob.value, 'voice-recording.webm');
+    setOptions({
+      prepend: '# Voice Feedback',
+      append: `
+
+---
+**System Info:**
+- Browser: ${navigator.userAgent}`,
+      mediaUrl: downloadUrl,
+    });
+    openPopup(token);
+  }
 }
 ```
 
