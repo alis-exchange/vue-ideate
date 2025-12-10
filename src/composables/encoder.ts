@@ -27,13 +27,13 @@ export interface IdeateFeedbackOptions {
  * @param opts - Optional configuration for the feedback session.
  * @returns An object containing methods to generate the URL and parse parameters.
  */
-export function useIdeateFeedback(opts?: IdeateFeedbackOptions) {
+export function useIdeateFeedback() {
   /**
    * Generates the full Ideate feedback URL with the token and encoded options.
    *
    * @returns The complete URL string.
    */
-  const generateUrl = (token: string) => {
+  const generateUrl = (token: string, opts?: IdeateFeedbackOptions) => {
     let params = ''
     if (opts) {
       const json = JSON.stringify(opts)
