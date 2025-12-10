@@ -5,7 +5,7 @@ This package provides utility composables to help users of Alis Ideate better li
 ## Installation
 
 ```bash
-pnpm add vue-ideate
+pnpm add @alis-build/vue-ideate
 ```
 
 ## Usage
@@ -17,7 +17,7 @@ The main entry point is the `useIdeate` composable.
 The `useIdeate` composable is your main tool for creating and managing feedback submissions to the Ideate platform. It holds the feedback details in a reactive state and provides functions to trigger the submission process.
 
 ```typescript
-import { useIdeate } from 'vue-ideate';
+import { useIdeate } from '@alis-build/vue-ideate';
 
 const { setOptions, openPopup, generateUrl, openTab, options } = useIdeate();
 ```
@@ -71,7 +71,7 @@ Provides functions and reactive state for recording the user's screen.
 **Example:**
 ```vue
 <script setup>
-import { useScreenRecorder } from 'vue-ideate';
+import { useScreenRecorder } from '@alis-build/vue-ideate';
 
 const {
   isRecording,
@@ -107,7 +107,7 @@ Provides functions and reactive state for taking a screenshot of the current tab
 **Example:**
 ```vue
 <script setup>
-import { useScreenshot } from 'vue-ideate';
+import { useScreenshot } from '@alis-build/vue-ideate';
 
 const {
   screenshotUrl,
@@ -137,8 +137,8 @@ const {
 Provides a function to upload files to the Ideate service.
 
 ```typescript
-import { useFileUploader } from 'vue-ideate';
-import { useScreenshot } from 'vue-ideate';
+import { useFileUploader } from '@alis-build/vue-ideate';
+import { useScreenshot } from '@alis-build/vue-ideate';
 
 const { takeScreenshot, screenshotBlob } = useScreenshot();
 const { upload, loadingUploading, errorUploading } = useFileUploader();
@@ -158,14 +158,14 @@ async function takeAndUpload() {
 
 ## Workflows
 
-Here are some typical workflows for using `vue-ideate`.
+Here are some typical workflows for using `@alis-build/vue-ideate`.
 
 ### 1. Screen Recording Feedback
 
 This workflow is ideal for capturing dynamic feedback, such as bug reproductions or feature demonstrations.
 
 ```typescript
-import { useIdeate, useScreenRecorder, useFileUploader } from 'vue-ideate';
+import { useIdeate, useScreenRecorder, useFileUploader } from '@alis-build/vue-ideate';
 
 const token = 'YOUR_COLLECTION_TOKEN';
 const { openPopup, setOptions } = useIdeate();
@@ -201,7 +201,7 @@ async function onRecordingStopped() {
 When a user has a specific feature request related to a part of the UI. You can create multiple instances of `useScreenshot` if you need to manage multiple screenshots independently.
 
 ```typescript
-import { useIdeate, useScreenshot, useFileUploader } from 'vue-ideate';
+import { useIdeate, useScreenshot, useFileUploader } from '@alis-build/vue-ideate';
 
 const token = 'YOUR_COLLECTION_TOKEN';
 const { openPopup, setOptions } = useIdeate();
@@ -234,7 +234,7 @@ async function captureAndSendScreenshotFeedback(userText: string) {
 For quick bug reports where visual context is not necessary.
 
 ```typescript
-import { useIdeate } from 'vue-ideate';
+import { useIdeate } from '@alis-build/vue-ideate';
 
 const token = 'YOUR_COLLECTION_TOKEN';
 const { openPopup, setOptions } = useIdeate();
