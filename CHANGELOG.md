@@ -1,3 +1,13 @@
+## [1.0.7](https://github.com/alis-exchange/vue-ideate/compare/v1.0.6...v1.0.7) (2025-12-10)
+
+
+### Bug Fixes
+
+* fix gh action ([231b1d4](https://github.com/alis-exchange/vue-ideate/commit/231b1d4b8686b5ccac513d1f5e449f2f80266fd3))
+* fix publish ([8f6d82d](https://github.com/alis-exchange/vue-ideate/commit/8f6d82d0441792c62e2b2163918376b7ca535a48))
+
+
+
 ## [1.0.5](https://github.com/alis-exchange/vue-ideate/compare/a0799f618c164a6ca0dc02d020fd4369f5a9f6ec...v1.0.5) (2025-12-10)
 
 
