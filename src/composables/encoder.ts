@@ -23,14 +23,13 @@ export interface IdeateFeedbackOptions {
 /**
  * Composable for handling Ideate feedback URL generation and parameter parsing.
  *
- * @param token - The authentication or session token to include in the URL.
- * @param opts - Optional configuration for the feedback session.
  * @returns An object containing methods to generate the URL and parse parameters.
  */
 export function useIdeateFeedback() {
   /**
    * Generates the full Ideate feedback URL with the token and encoded options.
-   *
+   * @param token - The authentication or session token to include in the URL.
+   * @param opts - Optional configuration for the feedback session.
    * @returns The complete URL string.
    */
   const generateUrl = (token: string, opts?: IdeateFeedbackOptions) => {
@@ -65,16 +64,28 @@ export function useIdeateFeedback() {
    * Generates the Ideate feedback URL and opens it in a new small popup window.
    *
    * @param token - The authentication or session token to include in the URL.
+   * @param opts - Optional configuration for the feedback session.
    */
-  const open = (token: string, opts?: IdeateFeedbackOptions) => {
+  const openPopup = (token: string, opts?: IdeateFeedbackOptions) => {
     const url = generateUrl(token, opts)
     const windowFeatures = 'left=100,top=100,width=400,height=400,popup=true'
     window.open(url, '_blank', windowFeatures)
+  }
+  /**
+   * Generates the Ideate feedback URL and opens it in a new tab.
+   *
+   * @param token - The authentication or session token to include in the URL.
+   * @param opts - Optional configuration for the feedback session.
+   */
+  const openTab = (token: string, opts?: IdeateFeedbackOptions) => {
+    const url = generateUrl(token, opts)
+    
+    window.open(url, '_blank')
   }
 
   return {
     generateUrl,
     parseParams,
-    open,
+    openPopup,
   }
 }
