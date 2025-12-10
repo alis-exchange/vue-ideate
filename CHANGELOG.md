@@ -1,3 +1,13 @@
+## [1.1.2](https://github.com/alis-exchange/vue-ideate/compare/v1.1.1...v1.1.2) (2025-12-10)
+
+
+### Features
+
+* add voice recording functionality and volume monitoring ([2e38478](https://github.com/alis-exchange/vue-ideate/commit/2e38478529436be8f3b7b1e28de147e0416281bd))
+* add voice recording functionality and volume monitoring ([b05494e](https://github.com/alis-exchange/vue-ideate/commit/b05494ed55aee2ffd70184b35e70e77000424018))
+
+
+
 ## [1.1.1](https://github.com/alis-exchange/vue-ideate/compare/v1.1.0...v1.1.1) (2025-12-10)
 
 
