@@ -78,6 +78,8 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           scope: "@alis-build"
           cache: "pnpm"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install dependencies
         run: pnpm install
