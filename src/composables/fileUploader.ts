@@ -1,21 +1,18 @@
 import { ref } from 'vue'
 import { Buffer } from 'buffer'
 
-export function useVideoUploader(filename?: string, mimeType?: string) {
+export function useFileUploader() {
   const loadingUploading = ref(false)
   const errorUploading = ref<string | undefined>(undefined)
 
-  async function uploadVideo(videoChunks: Blob[]): Promise<string | undefined> {
-    if (!videoChunks || videoChunks.length === 0) {
-      return
-    }
+  async function _upload(file: Blob, filename: string, errorMessage: string): Promise<string | undefined> {
     loadingUploading.value = true
     errorUploading.value = undefined
 
     try {
       // 1. Get Upload URL
-      const safeFilename = filename ? encodeURIComponent(filename) : encodeURIComponent(`feedback-${Date.now()}.webm`)
-      const safeMimeType = mimeType || 'video/webm'
+      const safeFilename = encodeURIComponent(filename)
+      const safeMimeType = file.type || 'application/octet-stream'
       const encodedMimeType = encodeURIComponent(safeMimeType)
 
       const uploadUrlResponse = await fetch(`https://ideatepublicintake.alisx.com/upload?filename=${safeFilename}&mime-type=${encodedMimeType}`, {
@@ -31,14 +28,13 @@ export function useVideoUploader(filename?: string, mimeType?: string) {
       const downloadUrl = responseData.download_uri
 
       // 2. Upload File
-      const videoBlob = new Blob(videoChunks, { type: safeMimeType })
       const FILE_UPLOAD_CHUNK_SIZE = 8 * 1024 * 1024 // 8 MiB
-      const totalSize = videoBlob.size
+      const totalSize = file.size
       let start = 0
 
       while (start < totalSize) {
         const end = Math.min(start + FILE_UPLOAD_CHUNK_SIZE, totalSize)
-        const chunk = videoBlob.slice(start, end)
+        const chunk = file.slice(start, end)
         const arrayBuffer = await chunk.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
 
@@ -73,15 +69,34 @@ export function useVideoUploader(filename?: string, mimeType?: string) {
       return downloadUrl
     } catch (e) {
       console.error(e)
-      errorUploading.value = 'Failed to upload video. Please try again.'
-      throw e // Re-throw to allow caller to handle success/failure logic (like closing drawer)
+      errorUploading.value = errorMessage
+      throw e // Re-throw to allow caller to handle success/failure logic
     } finally {
       loadingUploading.value = false
     }
   }
 
+  async function uploadVideo(videoChunks: Blob[], filename?: string, mimeType?: string): Promise<string | undefined> {
+    if (!videoChunks || videoChunks.length === 0) {
+      return
+    }
+    const finalFilename = filename || `feedback-${Date.now()}.webm`
+    const finalMimeType = mimeType || 'video/webm'
+    const videoBlob = new Blob(videoChunks, { type: finalMimeType })
+
+    return _upload(videoBlob, finalFilename, 'Failed to upload video. Please try again.')
+  }
+
+  async function uploadFile(file: File): Promise<string | undefined> {
+    if (!file) {
+      return
+    }
+    return _upload(file, file.name, 'Failed to upload file. Please try again.')
+  }
+
   return {
     uploadVideo,
+    uploadFile,
     loadingUploading,
     errorUploading,
   }

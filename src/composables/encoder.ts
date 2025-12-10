@@ -14,7 +14,8 @@ export interface IdeateFeedbackOptions {
    * - 'auto-record-screen': Automatically starts a screen recording.
    * - 'auto-record-voice': Automatically starts recording a voice note.
    */
-  behaviour?: 'auto-submit' | 'auto-record-screen' | 'auto-record-voice'
+  behaviour?: 'auto-submit' | 'auto-submit-and-close' | 'auto-record-screen' | 'auto-record-voice'
+
   /** Media to add to the user's input or feedback. */
   mediaUrl?: string
 }
@@ -60,8 +61,20 @@ export function useIdeateFeedback(opts?: IdeateFeedbackOptions) {
     }
   }
 
+  /**
+   * Generates the Ideate feedback URL and opens it in a new small popup window.
+   *
+   * @param token - The authentication or session token to include in the URL.
+   */
+  const open = (token: string) => {
+    const url = generateUrl(token)
+    const windowFeatures = 'left=100,top=100,width=400,height=400,popup=true'
+    window.open(url, '_blank', windowFeatures)
+  }
+
   return {
     generateUrl,
     parseParams,
+    open,
   }
 }
