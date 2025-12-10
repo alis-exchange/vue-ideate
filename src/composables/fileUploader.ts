@@ -1,13 +1,18 @@
 import { ref } from 'vue'
 import { Buffer } from 'buffer'
 
+/**
+ * Composable for uploading files to the Ideate service.
+ * Handles chunked uploading for large files.
+ */
 export function useFileUploader() {
   const loadingUploading = ref(false)
   const errorUploading = ref<string | undefined>(undefined)
 
-  async function _upload(file: Blob, filename: string, errorMessage: string): Promise<string | undefined> {
+  async function upload(file: Blob, filename: string, errorMessage?: string): Promise<string | undefined> {
     loadingUploading.value = true
     errorUploading.value = undefined
+    const finalErrorMessage = errorMessage || 'Failed to upload file. Please try again.'
 
     try {
       // 1. Get Upload URL
@@ -27,7 +32,7 @@ export function useFileUploader() {
       const uploadUrl = responseData.upload_uri
       const downloadUrl = responseData.download_uri
 
-      // 2. Upload File
+      // 2. Upload File in chunks
       const FILE_UPLOAD_CHUNK_SIZE = 8 * 1024 * 1024 // 8 MiB
       const totalSize = file.size
       let start = 0
@@ -53,6 +58,8 @@ export function useFileUploader() {
           throw new Error(`Upload failed with status ${response.status}`)
         }
 
+        // If status is 308, the server has received a part of the file and expects more.
+        // The 'Range' header indicates how much has been received.
         if (response.status === 308) {
           const range = response.headers.get('Range')
           if (range) {
@@ -62,6 +69,7 @@ export function useFileUploader() {
             }
           }
         } else {
+          // Upload is complete
           break
         }
       }
@@ -69,35 +77,26 @@ export function useFileUploader() {
       return downloadUrl
     } catch (e) {
       console.error(e)
-      errorUploading.value = errorMessage
-      throw e // Re-throw to allow caller to handle success/failure logic
+      errorUploading.value = finalErrorMessage
+      // Re-throw to allow caller to handle success/failure logic
+      throw e
     } finally {
       loadingUploading.value = false
     }
   }
 
-  async function uploadVideo(videoChunks: Blob[], filename?: string, mimeType?: string): Promise<string | undefined> {
-    if (!videoChunks || videoChunks.length === 0) {
-      return
-    }
-    const finalFilename = filename || `feedback-${Date.now()}.webm`
-    const finalMimeType = mimeType || 'video/webm'
-    const videoBlob = new Blob(videoChunks, { type: finalMimeType })
-
-    return _upload(videoBlob, finalFilename, 'Failed to upload video. Please try again.')
-  }
-
-  async function uploadFile(file: File): Promise<string | undefined> {
-    if (!file) {
-      return
-    }
-    return _upload(file, file.name, 'Failed to upload file. Please try again.')
-  }
-
   return {
-    uploadVideo,
-    uploadFile,
+    /**
+     * Uploads a file (as a Blob) to the Ideate service.
+     * @param file The file blob to upload.
+     * @param filename The name of the file.
+     * @param errorMessage An optional custom error message.
+     * @returns A promise that resolves with the download URL of the uploaded file.
+     */
+    upload,
+    /** A reactive boolean indicating if an upload is in progress. */
     loadingUploading,
+    /** A reactive string holding the last upload error message, if any. */
     errorUploading,
   }
 }

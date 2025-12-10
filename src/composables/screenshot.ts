@@ -1,5 +1,8 @@
 import { ref } from 'vue'
 
+/**
+ * Composable for taking screenshots of the current browser tab.
+ */
 export function useScreenshot() {
   const screenshotBlob = ref<Blob | null>(null)
   const screenshotUrl = ref<string | null>(null)
@@ -98,11 +101,17 @@ export function useScreenshot() {
   }
 
   return {
+    /** Takes a screenshot of the current tab. */
     takeScreenshot,
+    /** Clears the current screenshot data. */
     clearScreenshot,
+    /** The Blob object of the screenshot. */
     screenshotBlob,
+    /** A URL for the screenshot, suitable for display in an <img> tag. */
     screenshotUrl,
+    /** A reactive boolean indicating if a screenshot operation is in progress. */
     isLoading,
+    /** A reactive string holding the last screenshot error message, if any. */
     error,
   }
 }

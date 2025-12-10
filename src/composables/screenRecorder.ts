@@ -1,24 +1,30 @@
-import { computed, ref, onUnmounted } from 'vue'
+import { computed, ref } from 'vue'
 
 const CONTENT_TYPE_VIDEO = 'video/webm'
 
-// Global state
-const isRecording = ref(false)
-const recordingDuration = ref(0)
-const recordingTimer = ref<number | undefined>(undefined)
-const videoChunks = ref<Blob[]>([])
-const videoUrl = ref<string | undefined>(undefined)
-const mediaStream = ref<MediaStream | undefined>(undefined)
-const mediaRecorder = ref<MediaRecorder | undefined>(undefined)
-
+/**
+ * Composable for recording the user's screen and microphone.
+ */
 export function useScreenRecorder() {
+  const isRecording = ref(false)
+  const recordingDuration = ref(0)
+  const recordingTimer = ref<number | undefined>(undefined)
+  const videoChunks = ref<Blob[]>([])
+  const videoBlob = ref<Blob | undefined>(undefined)
+  const videoUrl = ref<string | undefined>(undefined)
+  const mediaStream = ref<MediaStream | undefined>(undefined)
+  const mediaRecorder = ref<MediaRecorder | undefined>(undefined)
+
   const recordingDurationFormatted = computed(() => {
     const minutes = Math.floor(recordingDuration.value / 60)
     const remainingSeconds = recordingDuration.value % 60
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
   })
 
-  async function initMediaStream() {
+  /**
+   * Prompts the user for screen and microphone access, then starts the recording.
+   */
+  async function start() {
     try {
       const displayStream = await navigator.mediaDevices.getDisplayMedia({
         video: {
@@ -35,28 +41,21 @@ export function useScreenRecorder() {
 
       mediaStream.value = new MediaStream([...displayStream.getTracks(), ...audioStream.getTracks()])
       
-      
+      // When the user stops sharing their screen via the browser UI, stop the recording.
       const videoTrack = displayStream.getVideoTracks()[0]
       if (videoTrack) {
           videoTrack.onended = () => {
-              stopRecording()
+              stop()
           }
       }
 
-      await startRecording()
-    } catch (error) {
-      console.error('Error initializing media stream:', error)
-      clearMediaStream()
-    }
-  }
+      // Start the actual recording process
+      if (!mediaStream.value) return
 
-  async function startRecording() {
-    if (!mediaStream.value) return
-
-    try {
       mediaRecorder.value = new MediaRecorder(mediaStream.value.clone())
       videoChunks.value = []
       videoUrl.value = undefined
+      videoBlob.value = undefined
       recordingDuration.value = 0
 
       recordingTimer.value = window.setInterval(() => {
@@ -70,8 +69,9 @@ export function useScreenRecorder() {
       }
 
       mediaRecorder.value.onstop = () => {
-        const videoBlob = new Blob(videoChunks.value, { type: CONTENT_TYPE_VIDEO })
-        videoUrl.value = URL.createObjectURL(videoBlob)
+        const blob = new Blob(videoChunks.value, { type: CONTENT_TYPE_VIDEO })
+        videoBlob.value = blob
+        videoUrl.value = URL.createObjectURL(blob)
         if (recordingTimer.value) {
           clearInterval(recordingTimer.value)
           recordingTimer.value = undefined
@@ -81,24 +81,34 @@ export function useScreenRecorder() {
       mediaRecorder.value.start()
       isRecording.value = true
     } catch (error) {
-      console.error('Error starting recording:', error)
+      console.error('Error initializing media stream or starting recording:', error)
       clearMediaStream()
     }
   }
 
-  function stopRecording() {
+  /**
+   * Stops the screen recording.
+   */
+  function stop() {
     if (isRecording.value) {
       clearMediaStream(true)
       isRecording.value = false
     }
   }
 
+  /**
+   * Deletes the current recording data.
+   */
   function deleteRecording() {
     videoUrl.value = undefined
     videoChunks.value = []
+    videoBlob.value = undefined
     clearMediaStream()
   }
 
+  /**
+   * Cleans up all media streams and recorder instances.
+   */
   function clearMediaStream(ignoreStatus?: boolean) {
     if (mediaRecorder.value && mediaRecorder.value.stream) {
       mediaRecorder.value.stream.getTracks().forEach((track) => track.stop())
@@ -122,14 +132,18 @@ export function useScreenRecorder() {
   }
 
   return {
+    /** A reactive boolean indicating if a recording is in progress. */
     isRecording,
+    /** The duration of the current recording in seconds. */
     recordingDuration,
+    /** The formatted duration of the current recording (MM:SS). */
     recordingDurationFormatted,
+    /** A URL for the recorded video, suitable for playback in a <video> tag. */
     videoUrl,
-    videoChunks,
-    initMediaStream,
-    startRecording,
-    stopRecording,
+    /** The Blob object of the recorded video. */
+    videoBlob,
+    start,
+    stop,
     deleteRecording,
   }
 }

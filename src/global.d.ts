@@ -1,3 +1,11 @@
+/**
+ * This file contains type definitions for the experimental ImageCapture API.
+ * This is used by the screenshot composable to grab a frame from a video stream.
+ * The API is not yet part of the standard TypeScript library definitions.
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/ImageCapture
+ */
+
 interface ImageCapture {
   readonly track: MediaStreamTrack;
   takePhoto(photoSettings?: PhotoSettings): Promise<Blob>;
