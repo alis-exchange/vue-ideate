@@ -1,3 +1,13 @@
+## [1.1.1](https://github.com/alis-exchange/vue-ideate/compare/v1.1.0...v1.1.1) (2025-12-10)
+
+
+### Bug Fixes
+
+* add types ([4b0a86c](https://github.com/alis-exchange/vue-ideate/commit/4b0a86c1e7474c66146e2adeddada179a7f36d6c))
+* add types ([751bf75](https://github.com/alis-exchange/vue-ideate/commit/751bf754bc62f48d10b80ceb6464b3bc6c245ece))
+
+
+
 # [1.1.0](https://github.com/alis-exchange/vue-ideate/compare/v1.0.7...v1.1.0) (2025-12-10)
 
 
