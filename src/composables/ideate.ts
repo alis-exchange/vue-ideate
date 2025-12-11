@@ -51,15 +51,18 @@ export function useIdeate() {
     return `https://console.alisx.com/ideate/new?token=${token}${params}`;
   };
 
-  const openPopup = (token: string) => {
+  const open = (token: string, mode: 'tab' | 'popup' | string = 'tab') => {
     const url = generateUrl(token);
-    const windowFeatures = 'left=100,top=100,width=400,height=400,popup=true';
-    window.open(url, '_blank', windowFeatures);
-  };
+    let windowFeatures: string | undefined;
 
-  const openTab = (token: string) => {
-    const url = generateUrl(token);
-    window.open(url, '_blank');
+    if (mode === 'popup') {
+      windowFeatures = 'left=100,top=100,width=400,height=400,popup=true';
+    }
+    else if (mode !== 'tab') {
+      windowFeatures = mode;
+    }
+
+    window.open(url, '_blank', windowFeatures);
   };
 
   return {
@@ -69,21 +72,22 @@ export function useIdeate() {
      */
     setOptions,
     /**
-     * Opens the Ideate feedback form in a new small popup window.
-     * @param token - The collection token.
-     */
-    openPopup,
-    /**
      * Generates the full Ideate feedback URL with the current options.
      * @param token - The collection token.
      * @returns The complete URL string.
      */
     generateUrl,
     /**
-     * Opens the Ideate feedback form in a new browser tab.
+     * Opens the Ideate feedback form in a new tab or popup window.
      * @param token - The collection token.
+     * @param mode - Determines how the form is opened.
+     * - 'tab': (Default) Opens in a new browser tab.
+     * - 'popup': Opens in a small popup window with default dimensions.
+     * - Custom string: For advanced control, you can provide a custom string for the `windowFeatures` parameter of `window.open()`.
+     *   This allows you to specify dimensions, position, and other properties of the popup.
+     *   For more details, see the MDN documentation: https://developer.mozilla.org/en-US/docs/Web/API/Window/open#windowfeatures
      */
-    openTab,
+    open,
     /** The reactive options object. */
     options,
   };

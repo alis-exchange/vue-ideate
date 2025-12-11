@@ -8,6 +8,10 @@ This package provides utility composables to help users of Alis Ideate better li
 pnpm add @alis-build/vue-ideate
 ```
 
+## Prerequisites
+
+To use this package, you will need a collection token from Alis Ideate. You can get your token by creating a collection at [https://console.alisx.com/ideate/home/collections](https://console.alisx.com/ideate/home/collections).
+
 ## Usage
 
 The main entry point is the `useIdeate` composable.
@@ -19,7 +23,7 @@ The `useIdeate` composable is your main tool for creating and managing feedback 
 ```typescript
 import { useIdeate } from '@alis-build/vue-ideate';
 
-const { setOptions, openPopup, generateUrl, openTab, options } = useIdeate();
+const { setOptions, open, generateUrl, options } = useIdeate();
 ```
 
 #### `setOptions(options)`
@@ -38,19 +42,36 @@ This function allows you to set the details for the feedback submission. You can
 
 **Example:**
 ```typescript
+const systemInfo = `
+---
+User Agent: ${navigator.userAgent}`;
+
 setOptions({
   prepend: '# Bug Report',
   body: 'The login button is not working.',
-  append: `\n\n---\nUser Agent: ${navigator.userAgent}`,
+  append: systemInfo,
 });
 ```
 
-#### `openPopup(token)` and `openTab(token)`
+#### `open(token, mode)`
 
-Once you have set your options, you call one of these functions to present the feedback form to the user. Both functions take a collection `token` as an argument.
+Once you have set your options, you call this function to present the feedback form to the user. It takes a collection `token` as the first argument, and an optional `mode` as the second.
 
--   `openPopup(token)` opens the Ideate submission form in a new, small popup window. This is great for a less intrusive experience.
--   `openTab(token)` opens the form in a new full browser tab.
+-   `open(token)` or `open(token, 'tab')` opens the form in a new full browser tab. This is the default behavior.
+-   `open(token, 'popup')` opens the Ideate submission form in a new, small popup window. This is great for a less intrusive experience.
+-   For more advanced control, you can provide a custom `windowFeatures` string as the `mode`. This allows you to specify the popup's size, position, and other properties. For more details, see the [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/API/Window/open#windowfeatures).
+
+**Example:**
+```typescript
+// Open in a new tab (default)
+open('YOUR_TOKEN');
+
+// Open in a popup
+open('YOUR_TOKEN', 'popup');
+
+// Open in a custom-sized popup
+open('YOUR_TOKEN', 'left=100,top=100,width=300,height=500,popup=true');
+```
 
 #### `generateUrl(token)`
 
@@ -210,7 +231,7 @@ This workflow is ideal for capturing dynamic feedback, such as bug reproductions
 import { useIdeate, useScreenRecorder, useFileUploader } from '@alis-build/vue-ideate';
 
 const token = 'YOUR_COLLECTION_TOKEN';
-const { openPopup, setOptions } = useIdeate();
+const { open, setOptions } = useIdeate();
 const { start, stop, videoBlob } = useScreenRecorder();
 const { upload } = useFileUploader();
 
@@ -224,16 +245,17 @@ async function captureAndSendVideoFeedback() {
 async function onRecordingStopped() {
   if (videoBlob.value) {
     const downloadUrl = await upload(videoBlob.value, 'screen-recording.webm');
-    setOptions({
-      prepend: '# General Feedback',
-      append: `
-
+    const systemInfo = `
 ---
 **System Info:**
-- Browser: ${navigator.userAgent}`,
+- Browser: ${navigator.userAgent}`;
+
+    setOptions({
+      prepend: '# General Feedback',
+      append: systemInfo,
       mediaUrl: downloadUrl,
     });
-    openPopup(token);
+    open(token, 'popup');
   }
 }
 ```
@@ -246,7 +268,7 @@ When a user has a specific feature request related to a part of the UI. You can 
 import { useIdeate, useScreenshot, useFileUploader } from '@alis-build/vue-ideate';
 
 const token = 'YOUR_COLLECTION_TOKEN';
-const { openPopup, setOptions } = useIdeate();
+const { open, setOptions } = useIdeate();
 const { takeScreenshot, screenshotBlob } = useScreenshot();
 const { upload } = useFileUploader();
 
@@ -255,18 +277,18 @@ async function captureAndSendScreenshotFeedback(userText: string) {
 
   if (screenshotBlob.value) {
     const downloadUrl = await upload(screenshotBlob.value, 'screenshot.png');
+    const systemInfo = `
+---
+**System Info:**
+- URL: ${window.location.href}`;
 
     setOptions({
       prepend: '# Feature request',
       body: userText,
-      append: `
-
----
-**System Info:**
-- URL: ${window.location.href}`,
+      append: systemInfo,
       mediaUrl: downloadUrl,
     });
-    openPopup(token);
+    open(token, 'popup');
   }
 }
 ```
@@ -279,19 +301,20 @@ For quick bug reports where visual context is not necessary.
 import { useIdeate } from '@alis-build/vue-ideate';
 
 const token = 'YOUR_COLLECTION_TOKEN';
-const { openPopup, setOptions } = useIdeate();
+const { open, setOptions } = useIdeate();
 
 function sendTextFeedback(userText: string) {
+  const systemInfo = `
+---
+**System Info:**
+- Timestamp: ${new Date().toISOString()}`;
+
   setOptions({
     prepend: '# Bug',
     body: userText,
-    append: `
-
----
-**System Info:**
-- Timestamp: ${new Date().toISOString()}`,
+    append: systemInfo,
   });
-  openPopup(token);
+  open(token, 'popup');
 }
 ```
 
@@ -303,7 +326,7 @@ This workflow is ideal for capturing voice feedback.
 import { useIdeate, useVoiceRecorder, useFileUploader } from '@alis-build/vue-ideate';
 
 const token = 'YOUR_COLLECTION_TOKEN';
-const { openPopup, setOptions } = useIdeate();
+const { open, setOptions } = useIdeate();
 const { start, stop, audioBlob } = useVoiceRecorder();
 const { upload } = useFileUploader();
 
@@ -317,20 +340,38 @@ async function captureAndSendVoiceFeedback() {
 async function onRecordingStopped() {
   if (audioBlob.value) {
     const downloadUrl = await upload(audioBlob.value, 'voice-recording.webm');
-    setOptions({
-      prepend: '# Voice Feedback',
-      append: `
-
+    const systemInfo = `
 ---
 **System Info:**
-- Browser: ${navigator.userAgent}`,
+- Browser: ${navigator.userAgent}`;
+
+    setOptions({
+      prepend: '# Voice Feedback',
+      append: systemInfo,
       mediaUrl: downloadUrl,
     });
-    openPopup(token);
+    open(token, 'popup');
   }
 }
 ```
 
-The `token` can be copied from the relevant collection at: [https://console.alisx.com/ideate/home/collections](https://console.alisx.com/ideate/home/collections)
+### 5. Custom Popup Window
 
+This workflow demonstrates how to open the feedback form in a popup window with custom dimensions and position.
+
+```typescript
+import { useIdeate } from '@alis-build/vue-ideate';
+
+const token = 'YOUR_COLLECTION_TOKEN';
+const { open, setOptions } = useIdeate();
+
+function openCustomPopup(userText: string) {
+  setOptions({
+    prepend: '# Feedback',
+    body: userText,
+  });
+
+  const windowFeatures = 'left=200,top=200,width=500,height=600,popup=true';
+  open(token, windowFeatures);
+}
 ```
