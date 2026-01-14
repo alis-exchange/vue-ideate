@@ -1,3 +1,13 @@
+# [1.3.0](https://github.com/alis-exchange/vue-ideate/compare/v1.2.0...v1.3.0) (2026-01-14)
+
+
+### Features
+
+* add multiple media urls ([92fcede](https://github.com/alis-exchange/vue-ideate/commit/92fcedef85c0274ce2d5f3218c46cac3b46cc857))
+* enhance feedback submission with simpler, more customizable open method ([42f0f15](https://github.com/alis-exchange/vue-ideate/commit/42f0f1520d777b614ac24bf6ea51776fa9b5a817))
+
+
+
 ## [1.1.2](https://github.com/alis-exchange/vue-ideate/compare/v1.1.1...v1.1.2) (2025-12-10)
 
 
