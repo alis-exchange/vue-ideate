@@ -32,15 +32,16 @@ This function allows you to set the details for the feedback submission. You can
 
 **Available Options:**
 
-| Option      | Type     | Description                                                                                                                                                           |
-|-------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `body`      | `string` | The main text of the feedback to pre-populate the submission form.                                                                                                    |
-| `prepend`   | `string` | Text that will be added *before* the user's input in the final submission. Useful for adding tags like `#bug` or `#feature`.                                            |
-| `append`    | `string` | Text that will be added *after* the user's input. Ideal for appending system information, logs, or user details.                                                       |
-| `mediaUrl`  | `string` | A URL to an image or video file that will be attached to the feedback. You can get this URL from the `useFileUploader` composable.                                      |
-| `behaviour` | `string` | Defines an automated action to trigger when the feedback form is opened. Can be `'auto-submit'`, `'auto-record-screen'`, or `'auto-record-voice'`. |
+| Option      | Type                   | Description                                                                                                                                            |
+| ----------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `body`      | `string`               | The main text of the feedback to pre-populate the submission form.                                                                                     |
+| `prepend`   | `string`               | Text that will be added _before_ the user's input in the final submission. Useful for adding tags like `#bug` or `#feature`.                           |
+| `append`    | `string`               | Text that will be added _after_ the user's input. Ideal for appending system information, logs, or user details.                                       |
+| `mediaUrl`  | `string` \| `string[]` | A URL or an array of URLs to image or video files that will be attached to the feedback. You can get these URLs from the `useFileUploader` composable. |
+| `behaviour` | `string`               | Defines an automated action to trigger when the feedback form is opened. Can be `'auto-submit'`, `'auto-record-screen'`, or `'auto-record-voice'`.     |
 
 **Example:**
+
 ```typescript
 const systemInfo = `
 ---
@@ -57,11 +58,12 @@ setOptions({
 
 Once you have set your options, you call this function to present the feedback form to the user. It takes a collection `token` as the first argument, and an optional `mode` as the second.
 
--   `open(token)` or `open(token, 'tab')` opens the form in a new full browser tab. This is the default behavior.
--   `open(token, 'popup')` opens the Ideate submission form in a new, small popup window. This is great for a less intrusive experience.
--   For more advanced control, you can provide a custom `windowFeatures` string as the `mode`. This allows you to specify the popup's size, position, and other properties. For more details, see the [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/API/Window/open#windowfeatures).
+- `open(token)` or `open(token, 'tab')` opens the form in a new full browser tab. This is the default behavior.
+- `open(token, 'popup')` opens the Ideate submission form in a new, small popup window. This is great for a less intrusive experience.
+- For more advanced control, you can provide a custom `windowFeatures` string as the `mode`. This allows you to specify the popup's size, position, and other properties. For more details, see the [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/API/Window/open#windowfeatures).
 
 **Example:**
+
 ```typescript
 // Open in a new tab (default)
 open('YOUR_TOKEN');
@@ -82,7 +84,6 @@ const url = generateUrl('YOUR_TOKEN');
 // <a :href="url">Submit Feedback</a>
 ```
 
-
 See the `Workflows` section for more advanced examples of combining composables.
 
 ### `useScreenRecorder`
@@ -90,19 +91,20 @@ See the `Workflows` section for more advanced examples of combining composables.
 Provides functions and reactive state for recording the user's screen.
 
 **Example:**
+
 ```vue
 <script setup>
-import { useScreenRecorder } from '@alis-build/vue-ideate';
+  import { useScreenRecorder } from '@alis-build/vue-ideate';
 
-const {
-  isRecording,
-  recordingDurationFormatted,
-  videoUrl,
-  volumeLevel,
-  start,
-  stop,
-  deleteRecording,
-} = useScreenRecorder();
+  const {
+    isRecording,
+    recordingDurationFormatted,
+    videoUrl,
+    volumeLevel,
+    start,
+    stop,
+    deleteRecording,
+  } = useScreenRecorder();
 </script>
 
 <template>
@@ -129,19 +131,20 @@ The `volumeLevel` is a reactive number between 0 and 1 that represents the curre
 Provides functions and reactive state for recording the user's voice.
 
 **Example:**
+
 ```vue
 <script setup>
-import { useVoiceRecorder } from '@alis-build/vue-ideate';
+  import { useVoiceRecorder } from '@alis-build/vue-ideate';
 
-const {
-  isRecording,
-  recordingDurationFormatted,
-  audioUrl,
-  volumeLevel,
-  start,
-  stop,
-  deleteRecording,
-} = useVoiceRecorder();
+  const {
+    isRecording,
+    recordingDurationFormatted,
+    audioUrl,
+    volumeLevel,
+    start,
+    stop,
+    deleteRecording,
+  } = useVoiceRecorder();
 </script>
 
 <template>
@@ -168,17 +171,13 @@ The `volumeLevel` is a reactive number between 0 and 1 that represents the curre
 Provides functions and reactive state for taking a screenshot of the current tab.
 
 **Example:**
+
 ```vue
 <script setup>
-import { useScreenshot } from '@alis-build/vue-ideate';
+  import { useScreenshot } from '@alis-build/vue-ideate';
 
-const {
-  screenshotUrl,
-  isLoading,
-  error,
-  takeScreenshot,
-  clearScreenshot,
-} = useScreenshot();
+  const { screenshotUrl, isLoading, error, takeScreenshot, clearScreenshot } =
+    useScreenshot();
 </script>
 
 <template>
@@ -228,7 +227,11 @@ Here are some typical workflows for using `@alis-build/vue-ideate`.
 This workflow is ideal for capturing dynamic feedback, such as bug reproductions or feature demonstrations.
 
 ```typescript
-import { useIdeate, useScreenRecorder, useFileUploader } from '@alis-build/vue-ideate';
+import {
+  useIdeate,
+  useScreenRecorder,
+  useFileUploader,
+} from '@alis-build/vue-ideate';
 
 const token = 'YOUR_COLLECTION_TOKEN';
 const { open, setOptions } = useIdeate();
@@ -237,7 +240,7 @@ const { upload } = useFileUploader();
 
 async function captureAndSendVideoFeedback() {
   await start();
-  
+
   // Wait for the user to finish recording and stop it
   // For example, you can have a button that calls stop()
 }
@@ -265,7 +268,11 @@ async function onRecordingStopped() {
 When a user has a specific feature request related to a part of the UI. You can create multiple instances of `useScreenshot` if you need to manage multiple screenshots independently.
 
 ```typescript
-import { useIdeate, useScreenshot, useFileUploader } from '@alis-build/vue-ideate';
+import {
+  useIdeate,
+  useScreenshot,
+  useFileUploader,
+} from '@alis-build/vue-ideate';
 
 const token = 'YOUR_COLLECTION_TOKEN';
 const { open, setOptions } = useIdeate();
@@ -323,7 +330,11 @@ function sendTextFeedback(userText: string) {
 This workflow is ideal for capturing voice feedback.
 
 ```typescript
-import { useIdeate, useVoiceRecorder, useFileUploader } from '@alis-build/vue-ideate';
+import {
+  useIdeate,
+  useVoiceRecorder,
+  useFileUploader,
+} from '@alis-build/vue-ideate';
 
 const token = 'YOUR_COLLECTION_TOKEN';
 const { open, setOptions } = useIdeate();
@@ -332,7 +343,7 @@ const { upload } = useFileUploader();
 
 async function captureAndSendVoiceFeedback() {
   await start();
-  
+
   // Wait for the user to finish recording and stop it
   // For example, you can have a button that calls stop()
 }
@@ -371,7 +382,109 @@ function openCustomPopup(userText: string) {
     body: userText,
   });
 
-  const windowFeatures = 'left=200,top=200,width=500,height=600,popup=true';
   open(token, windowFeatures);
+}
+```
+
+### 6. Screen Recording and File Upload
+
+This workflow combines a screen recording with an additional file upload (e.g., a log file).
+
+```typescript
+import {
+  useIdeate,
+  useScreenRecorder,
+  useFileUploader,
+} from '@alis-build/vue-ideate';
+
+const token = 'YOUR_COLLECTION_TOKEN';
+const { open, setOptions } = useIdeate();
+const { start, stop, videoBlob } = useScreenRecorder();
+const { upload } = useFileUploader();
+
+async function captureScreenAndUploadLog(logFile: File) {
+  // Start recording
+  await start();
+
+  // Stop recording after some event...
+  // await stop(); // Call this when done
+}
+
+async function onRecordingStopped(logFile: File) {
+  if (videoBlob.value) {
+    const videoUpload = upload(videoBlob.value, 'screen-recording.webm');
+    const logUpload = upload(logFile, 'app.log');
+
+    const [videoUrl, logUrl] = await Promise.all([videoUpload, logUpload]);
+
+    setOptions({
+      prepend: '# Bug Report with Logs',
+      mediaUrl: [videoUrl, logUrl], // Pass multiple URLs
+    });
+    open(token, 'popup');
+  }
+}
+```
+
+### 7. Multiple File Uploads
+
+This workflow allows users to upload multiple files, such as multiple screenshots or documents.
+
+```typescript
+import { useIdeate, useFileUploader } from '@alis-build/vue-ideate';
+
+const token = 'YOUR_COLLECTION_TOKEN';
+const { open, setOptions } = useIdeate();
+const { upload } = useFileUploader();
+
+async function uploadMultipleFiles(files: File[]) {
+  const uploadPromises = files.map((file) => upload(file, file.name));
+  const urls = await Promise.all(uploadPromises);
+
+  setOptions({
+    prepend: '# Multiple Attachments',
+    mediaUrl: urls, // Array of URLs
+  });
+  open(token, 'popup');
+}
+```
+
+### 8. Voice Note and File Upload
+
+This workflow combines a voice note with a file upload.
+
+```typescript
+import {
+  useIdeate,
+  useVoiceRecorder,
+  useFileUploader,
+} from '@alis-build/vue-ideate';
+
+const token = 'YOUR_COLLECTION_TOKEN';
+const { open, setOptions } = useIdeate();
+const { start, stop, audioBlob } = useVoiceRecorder();
+const { upload } = useFileUploader();
+
+async function captureVoiceAndUploadDetail(imageFile: File) {
+  // Start recording
+  await start();
+
+  // Stop recording after some event...
+  // await stop(); // Call this when done
+}
+
+async function onRecordingStopped(imageFile: File) {
+  if (audioBlob.value) {
+    const audioUpload = upload(audioBlob.value, 'voice-note.webm');
+    const imageUpload = upload(imageFile, 'context-image.png');
+
+    const [audioUrl, imageUrl] = await Promise.all([audioUpload, imageUpload]);
+
+    setOptions({
+      prepend: '# Voice Feedback with Image',
+      mediaUrl: [audioUrl, imageUrl],
+    });
+    open(token, 'popup');
+  }
 }
 ```
