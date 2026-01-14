@@ -11,7 +11,7 @@ export interface IdeateOptions {
   /** Text to append to the user's input. */
   append?: string;
   /** A URL to an image or video file to be attached to the feedback. */
-  mediaUrl?: string;
+  mediaUrl?: string | string[];
   /**
    * Automated behavior to trigger when the link is opened.
    * - 'auto-submit': Automatically submits the feedback. Requires `body` to be populated.
