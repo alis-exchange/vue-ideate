@@ -1,90 +1,128 @@
 # Vue Ideate
 
-This package provides utility composables to help users of Alis Ideate better link and integrate their products.
+A Vue 3 composable library for programmatically submitting content to Alis Ideate. This package provides utilities to capture and submit text notes, audio recordings, screenshots, and files directly to your Ideate collections.
 
 ## Installation
 
 ```bash
-pnpm add @alis-build/vue-ideate
+pnpm add @alis-build/vue-ideate @alis-build/ideate
 ```
 
 ## Prerequisites
 
-To use this package, you will need a collection token from Alis Ideate. You can get your token by creating a collection at [https://console.alisx.com/ideate/home/collections](https://console.alisx.com/ideate/home/collections).
+1. **Collection Token**: Get your token by creating a collection at [https://console.alisx.com/ideate/home/collections](https://console.alisx.com/ideate/home/collections)
+2. **Ideate Client**: You'll need to initialize an `IdeateServicePromiseClient` from the `@alis-build/ideate` package
 
-## Usage
+## Quick Start
 
-The main entry point is the `useIdeate` composable.
+```typescript
+import { useIdeate } from '@alis-build/vue-ideate';
+import { IdeateServicePromiseClient } from '@alis-build/ideate/alis/ideate/ideate_grpc_web_pb';
 
-### `useIdeate`
+// Initialize the Ideate client
+const client = new IdeateServicePromiseClient(
+  'https://your-ideate-endpoint.com',
+);
 
-The `useIdeate` composable is your main tool for creating and managing feedback submissions to the Ideate platform. It holds the feedback details in a reactive state and provides functions to trigger the submission process.
+// Use the composable
+const { addNote, addAudioNote, addMultiFileUpload } = useIdeate(client);
+
+// Submit a text note
+await addNote('YOUR_COLLECTION_TOKEN', 'This is my feedback!');
+```
+
+## Core Composables
+
+### `useIdeate(client)`
+
+The main composable for submitting content to Ideate. It provides three methods for different types of submissions.
+
+**Parameters:**
+
+- `client`: An `IdeateServicePromiseClient` instance
+
+**Returns:**
+
+- `addNote(target, content)`: Submit a text note
+- `addAudioNote(target, content)`: Submit an audio recording
+- `addMultiFileUpload(target, files)`: Submit multiple files
+
+#### `addNote(target, content)`
+
+Submit a text note to an Ideate collection.
+
+```typescript
+const { addNote } = useIdeate(client);
+
+try {
+  await addNote('YOUR_TOKEN', 'The login button is not working');
+  console.log('Note submitted successfully!');
+} catch (error) {
+  console.error('Failed to submit note:', error);
+}
+```
+
+**Parameters:**
+
+- `target` (string): Your collection token
+- `content` (string): The text content to submit
+
+#### `addAudioNote(target, content)`
+
+Submit an audio recording to an Ideate collection.
+
+```typescript
+import { useVoiceRecorder, useIdeate } from '@alis-build/vue-ideate';
+
+const { start, stop, audioBlob } = useVoiceRecorder();
+const { addAudioNote } = useIdeate(client);
+
+// Start recording
+await start();
+
+// ... user records audio ...
+
+// Stop and submit
+await stop();
+if (audioBlob.value) {
+  await addAudioNote('YOUR_TOKEN', audioBlob.value);
+}
+```
+
+**Parameters:**
+
+- `target` (string): Your collection token
+- `content` (Blob): The audio data as a Blob
+
+#### `addMultiFileUpload(target, files)`
+
+Submit multiple files to an Ideate collection.
 
 ```typescript
 import { useIdeate } from '@alis-build/vue-ideate';
 
-const { setOptions, open, generateUrl, options } = useIdeate();
+const { addMultiFileUpload } = useIdeate(client);
+
+const files = [
+  {
+    blob: screenshotBlob,
+    filename: 'screenshot.png',
+    mimeType: 'image/png',
+  },
+  {
+    blob: logBlob,
+    filename: 'app.log',
+    mimeType: 'text/plain',
+  },
+];
+
+await addMultiFileUpload('YOUR_TOKEN', files);
 ```
 
-#### `setOptions(options)`
+**Parameters:**
 
-This function allows you to set the details for the feedback submission. You can pre-fill the feedback form, add context, or attach media. The options you set are merged with any existing options.
-
-**Available Options:**
-
-| Option      | Type                   | Description                                                                                                                                            |
-| ----------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `body`      | `string`               | The main text of the feedback to pre-populate the submission form.                                                                                     |
-| `prepend`   | `string`               | Text that will be added _before_ the user's input in the final submission. Useful for adding tags like `#bug` or `#feature`.                           |
-| `append`    | `string`               | Text that will be added _after_ the user's input. Ideal for appending system information, logs, or user details.                                       |
-| `mediaUrl`  | `string` \| `string[]` | A URL or an array of URLs to image or video files that will be attached to the feedback. You can get these URLs from the `useFileUploader` composable. |
-| `behaviour` | `string`               | Defines an automated action to trigger when the feedback form is opened. Can be `'auto-submit'`, `'auto-record-screen'`, or `'auto-record-voice'`.     |
-
-**Example:**
-
-```typescript
-const systemInfo = `
----
-User Agent: ${navigator.userAgent}`;
-
-setOptions({
-  prepend: '# Bug Report',
-  body: 'The login button is not working.',
-  append: systemInfo,
-});
-```
-
-#### `open(token, mode)`
-
-Once you have set your options, you call this function to present the feedback form to the user. It takes a collection `token` as the first argument, and an optional `mode` as the second.
-
-- `open(token)` or `open(token, 'tab')` opens the form in a new full browser tab. This is the default behavior.
-- `open(token, 'popup')` opens the Ideate submission form in a new, small popup window. This is great for a less intrusive experience.
-- For more advanced control, you can provide a custom `windowFeatures` string as the `mode`. This allows you to specify the popup's size, position, and other properties. For more details, see the [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/API/Window/open#windowfeatures).
-
-**Example:**
-
-```typescript
-// Open in a new tab (default)
-open('YOUR_TOKEN');
-
-// Open in a popup
-open('YOUR_TOKEN', 'popup');
-
-// Open in a custom-sized popup
-open('YOUR_TOKEN', 'left=100,top=100,width=300,height=500,popup=true');
-```
-
-#### `generateUrl(token)`
-
-If you need more control, this function returns the full Ideate URL without opening a new window or tab. You can use this to create a custom link or button.
-
-```typescript
-const url = generateUrl('YOUR_TOKEN');
-// <a :href="url">Submit Feedback</a>
-```
-
-See the `Workflows` section for more advanced examples of combining composables.
+- `target` (string): Your collection token
+- `files` (FileWrapper[]): Array of file objects with `blob`, `filename`, and `mimeType` properties
 
 ### `useScreenRecorder`
 
@@ -194,297 +232,376 @@ Provides functions and reactive state for taking a screenshot of the current tab
 </template>
 ```
 
-### `useFileUploader`
+## Workflows
 
-Provides a function to upload files to the Ideate service.
+Here are practical workflows for using `@alis-build/vue-ideate` to capture and submit different types of content.
+
+### 1. Simple Text Feedback
+
+Submit a text note directly to your Ideate collection.
 
 ```typescript
-import { useFileUploader } from '@alis-build/vue-ideate';
-import { useScreenshot } from '@alis-build/vue-ideate';
+import { useIdeate } from '@alis-build/vue-ideate';
+import { IdeateServicePromiseClient } from '@alis-build/ideate/alis/ideate/ideate_grpc_web_pb';
 
-const { takeScreenshot, screenshotBlob } = useScreenshot();
-const { upload, loadingUploading, errorUploading } = useFileUploader();
+const client = new IdeateServicePromiseClient('https://your-endpoint.com');
+const token = 'YOUR_COLLECTION_TOKEN';
+const { addNote } = useIdeate(client);
 
-async function takeAndUpload() {
-  await takeScreenshot();
-  if (screenshotBlob.value) {
+async function submitFeedback(userText: string) {
+  try {
+    await addNote(token, userText);
+    console.log('Feedback submitted!');
+  } catch (error) {
+    console.error('Failed to submit:', error);
+  }
+}
+```
+
+### 2. Voice Note Submission
+
+Record and submit audio feedback.
+
+```typescript
+import { useIdeate, useVoiceRecorder } from '@alis-build/vue-ideate';
+import { IdeateServicePromiseClient } from '@alis-build/ideate/alis/ideate/ideate_grpc_web_pb';
+
+const client = new IdeateServicePromiseClient('https://your-endpoint.com');
+const token = 'YOUR_COLLECTION_TOKEN';
+
+const { addAudioNote } = useIdeate(client);
+const { start, stop, audioBlob, isRecording } = useVoiceRecorder();
+
+async function recordAndSubmit() {
+  // Start recording
+  await start();
+
+  // Wait for user to finish...
+  // Then stop recording
+  await stop();
+
+  // Submit the audio
+  if (audioBlob.value) {
     try {
-      const downloadUrl = await upload(screenshotBlob.value, 'screenshot.png');
-      console.log('File uploaded:', downloadUrl);
-    } catch (e) {
-      console.error('Upload failed');
+      await addAudioNote(token, audioBlob.value);
+      console.log('Voice note submitted!');
+    } catch (error) {
+      console.error('Failed to submit:', error);
     }
   }
 }
 ```
 
-## Workflows
+### 3. Screenshot Submission
 
-Here are some typical workflows for using `@alis-build/vue-ideate`.
-
-### 1. Screen Recording Feedback
-
-This workflow is ideal for capturing dynamic feedback, such as bug reproductions or feature demonstrations.
+Capture a screenshot and submit it along with other files.
 
 ```typescript
-import {
-  useIdeate,
-  useScreenRecorder,
-  useFileUploader,
-} from '@alis-build/vue-ideate';
+import { useIdeate, useScreenshot } from '@alis-build/vue-ideate';
+import { IdeateServicePromiseClient } from '@alis-build/ideate/alis/ideate/ideate_grpc_web_pb';
 
+const client = new IdeateServicePromiseClient('https://your-endpoint.com');
 const token = 'YOUR_COLLECTION_TOKEN';
-const { open, setOptions } = useIdeate();
-const { start, stop, videoBlob } = useScreenRecorder();
-const { upload } = useFileUploader();
 
-async function captureAndSendVideoFeedback() {
-  await start();
-
-  // Wait for the user to finish recording and stop it
-  // For example, you can have a button that calls stop()
-}
-
-async function onRecordingStopped() {
-  if (videoBlob.value) {
-    const downloadUrl = await upload(videoBlob.value, 'screen-recording.webm');
-    const systemInfo = `
----
-**System Info:**
-- Browser: ${navigator.userAgent}`;
-
-    setOptions({
-      prepend: '# General Feedback',
-      append: systemInfo,
-      mediaUrl: downloadUrl,
-    });
-    open(token, 'popup');
-  }
-}
-```
-
-### 2. Screenshot with Feature Request
-
-When a user has a specific feature request related to a part of the UI. You can create multiple instances of `useScreenshot` if you need to manage multiple screenshots independently.
-
-```typescript
-import {
-  useIdeate,
-  useScreenshot,
-  useFileUploader,
-} from '@alis-build/vue-ideate';
-
-const token = 'YOUR_COLLECTION_TOKEN';
-const { open, setOptions } = useIdeate();
+const { addMultiFileUpload } = useIdeate(client);
 const { takeScreenshot, screenshotBlob } = useScreenshot();
-const { upload } = useFileUploader();
 
-async function captureAndSendScreenshotFeedback(userText: string) {
+async function captureAndSubmit() {
   await takeScreenshot();
 
   if (screenshotBlob.value) {
-    const downloadUrl = await upload(screenshotBlob.value, 'screenshot.png');
-    const systemInfo = `
----
-**System Info:**
-- URL: ${window.location.href}`;
+    const files = [
+      {
+        blob: screenshotBlob.value,
+        filename: 'screenshot.png',
+        mimeType: 'image/png',
+      },
+    ];
 
-    setOptions({
-      prepend: '# Feature request',
-      body: userText,
-      append: systemInfo,
-      mediaUrl: downloadUrl,
-    });
-    open(token, 'popup');
+    try {
+      await addMultiFileUpload(token, files);
+      console.log('Screenshot submitted!');
+    } catch (error) {
+      console.error('Failed to submit:', error);
+    }
   }
 }
 ```
 
-### 3. Text-Only Bug Report
+### 4. Screen Recording Submission
 
-For quick bug reports where visual context is not necessary.
-
-```typescript
-import { useIdeate } from '@alis-build/vue-ideate';
-
-const token = 'YOUR_COLLECTION_TOKEN';
-const { open, setOptions } = useIdeate();
-
-function sendTextFeedback(userText: string) {
-  const systemInfo = `
----
-**System Info:**
-- Timestamp: ${new Date().toISOString()}`;
-
-  setOptions({
-    prepend: '# Bug',
-    body: userText,
-    append: systemInfo,
-  });
-  open(token, 'popup');
-}
-```
-
-### 4. Voice Message Feedback
-
-This workflow is ideal for capturing voice feedback.
+Record the screen and submit the video.
 
 ```typescript
-import {
-  useIdeate,
-  useVoiceRecorder,
-  useFileUploader,
-} from '@alis-build/vue-ideate';
+import { useIdeate, useScreenRecorder } from '@alis-build/vue-ideate';
+import { IdeateServicePromiseClient } from '@alis-build/ideate/alis/ideate/ideate_grpc_web_pb';
 
+const client = new IdeateServicePromiseClient('https://your-endpoint.com');
 const token = 'YOUR_COLLECTION_TOKEN';
-const { open, setOptions } = useIdeate();
-const { start, stop, audioBlob } = useVoiceRecorder();
-const { upload } = useFileUploader();
 
-async function captureAndSendVoiceFeedback() {
-  await start();
+const { addMultiFileUpload } = useIdeate(client);
+const { start, stop, videoBlob, isRecording } = useScreenRecorder();
 
-  // Wait for the user to finish recording and stop it
-  // For example, you can have a button that calls stop()
-}
-
-async function onRecordingStopped() {
-  if (audioBlob.value) {
-    const downloadUrl = await upload(audioBlob.value, 'voice-recording.webm');
-    const systemInfo = `
----
-**System Info:**
-- Browser: ${navigator.userAgent}`;
-
-    setOptions({
-      prepend: '# Voice Feedback',
-      append: systemInfo,
-      mediaUrl: downloadUrl,
-    });
-    open(token, 'popup');
-  }
-}
-```
-
-### 5. Custom Popup Window
-
-This workflow demonstrates how to open the feedback form in a popup window with custom dimensions and position.
-
-```typescript
-import { useIdeate } from '@alis-build/vue-ideate';
-
-const token = 'YOUR_COLLECTION_TOKEN';
-const { open, setOptions } = useIdeate();
-
-function openCustomPopup(userText: string) {
-  setOptions({
-    prepend: '# Feedback',
-    body: userText,
-  });
-
-  open(token, windowFeatures);
-}
-```
-
-### 6. Screen Recording and File Upload
-
-This workflow combines a screen recording with an additional file upload (e.g., a log file).
-
-```typescript
-import {
-  useIdeate,
-  useScreenRecorder,
-  useFileUploader,
-} from '@alis-build/vue-ideate';
-
-const token = 'YOUR_COLLECTION_TOKEN';
-const { open, setOptions } = useIdeate();
-const { start, stop, videoBlob } = useScreenRecorder();
-const { upload } = useFileUploader();
-
-async function captureScreenAndUploadLog(logFile: File) {
+async function recordAndSubmit() {
   // Start recording
   await start();
 
-  // Stop recording after some event...
-  // await stop(); // Call this when done
-}
+  // Wait for user to finish...
+  // Then stop recording
+  await stop();
 
-async function onRecordingStopped(logFile: File) {
+  // Submit the video
   if (videoBlob.value) {
-    const videoUpload = upload(videoBlob.value, 'screen-recording.webm');
-    const logUpload = upload(logFile, 'app.log');
+    const files = [
+      {
+        blob: videoBlob.value,
+        filename: 'screen-recording.webm',
+        mimeType: 'video/webm',
+      },
+    ];
 
-    const [videoUrl, logUrl] = await Promise.all([videoUpload, logUpload]);
-
-    setOptions({
-      prepend: '# Bug Report with Logs',
-      mediaUrl: [videoUrl, logUrl], // Pass multiple URLs
-    });
-    open(token, 'popup');
+    try {
+      await addMultiFileUpload(token, files);
+      console.log('Screen recording submitted!');
+    } catch (error) {
+      console.error('Failed to submit:', error);
+    }
   }
 }
 ```
 
-### 7. Multiple File Uploads
+### 5. Multiple Files Submission
 
-This workflow allows users to upload multiple files, such as multiple screenshots or documents.
+Submit multiple files at once (screenshots, logs, etc.).
 
 ```typescript
-import { useIdeate, useFileUploader } from '@alis-build/vue-ideate';
+import { useIdeate } from '@alis-build/vue-ideate';
+import { IdeateServicePromiseClient } from '@alis-build/ideate/alis/ideate/ideate_grpc_web_pb';
 
+const client = new IdeateServicePromiseClient('https://your-endpoint.com');
 const token = 'YOUR_COLLECTION_TOKEN';
-const { open, setOptions } = useIdeate();
-const { upload } = useFileUploader();
 
-async function uploadMultipleFiles(files: File[]) {
-  const uploadPromises = files.map((file) => upload(file, file.name));
-  const urls = await Promise.all(uploadPromises);
+const { addMultiFileUpload } = useIdeate(client);
 
-  setOptions({
-    prepend: '# Multiple Attachments',
-    mediaUrl: urls, // Array of URLs
-  });
-  open(token, 'popup');
+async function submitMultipleFiles(userFiles: File[]) {
+  // Convert File objects to FileWrapper format
+  const files = await Promise.all(
+    userFiles.map(async (file) => ({
+      blob: file,
+      filename: file.name,
+      mimeType: file.type,
+    })),
+  );
+
+  try {
+    await addMultiFileUpload(token, files);
+    console.log('Files submitted!');
+  } catch (error) {
+    console.error('Failed to submit:', error);
+  }
 }
 ```
 
-### 8. Voice Note and File Upload
+### 6. Combined: Screen Recording + Log File
 
-This workflow combines a voice note with a file upload.
+Submit a screen recording along with a log file for comprehensive bug reports.
 
 ```typescript
-import {
-  useIdeate,
-  useVoiceRecorder,
-  useFileUploader,
-} from '@alis-build/vue-ideate';
+import { useIdeate, useScreenRecorder } from '@alis-build/vue-ideate';
+import { IdeateServicePromiseClient } from '@alis-build/ideate/alis/ideate/ideate_grpc_web_pb';
 
+const client = new IdeateServicePromiseClient('https://your-endpoint.com');
 const token = 'YOUR_COLLECTION_TOKEN';
-const { open, setOptions } = useIdeate();
-const { start, stop, audioBlob } = useVoiceRecorder();
-const { upload } = useFileUploader();
 
-async function captureVoiceAndUploadDetail(imageFile: File) {
+const { addMultiFileUpload } = useIdeate(client);
+const { start, stop, videoBlob } = useScreenRecorder();
+
+async function submitBugReport(logFile: File) {
   // Start recording
   await start();
 
-  // Stop recording after some event...
-  // await stop(); // Call this when done
-}
+  // User reproduces the bug...
 
-async function onRecordingStopped(imageFile: File) {
-  if (audioBlob.value) {
-    const audioUpload = upload(audioBlob.value, 'voice-note.webm');
-    const imageUpload = upload(imageFile, 'context-image.png');
+  // Stop recording
+  await stop();
 
-    const [audioUrl, imageUrl] = await Promise.all([audioUpload, imageUpload]);
+  // Submit both video and log file
+  if (videoBlob.value) {
+    const files = [
+      {
+        blob: videoBlob.value,
+        filename: 'bug-reproduction.webm',
+        mimeType: 'video/webm',
+      },
+      {
+        blob: logFile,
+        filename: logFile.name,
+        mimeType: logFile.type,
+      },
+    ];
 
-    setOptions({
-      prepend: '# Voice Feedback with Image',
-      mediaUrl: [audioUrl, imageUrl],
-    });
-    open(token, 'popup');
+    try {
+      await addMultiFileUpload(token, files);
+      console.log('Bug report submitted!');
+    } catch (error) {
+      console.error('Failed to submit:', error);
+    }
   }
 }
 ```
+
+### 7. Complete Vue Component Example
+
+A full example showing how to build a feedback widget.
+
+```vue
+<script setup lang="ts">
+  import { ref } from 'vue';
+  import {
+    useIdeate,
+    useVoiceRecorder,
+    useScreenshot,
+  } from '@alis-build/vue-ideate';
+  import { IdeateServicePromiseClient } from '@alis-build/ideate/alis/ideate/ideate_grpc_web_pb';
+
+  const client = new IdeateServicePromiseClient('https://your-endpoint.com');
+  const token = 'YOUR_COLLECTION_TOKEN';
+
+  const { addNote, addAudioNote, addMultiFileUpload } = useIdeate(client);
+  const {
+    start: startVoice,
+    stop: stopVoice,
+    audioBlob,
+    isRecording: isRecordingVoice,
+  } = useVoiceRecorder();
+  const { takeScreenshot, screenshotBlob } = useScreenshot();
+
+  const feedbackText = ref('');
+  const isSubmitting = ref(false);
+
+  async function submitTextFeedback() {
+    if (!feedbackText.value) return;
+
+    isSubmitting.value = true;
+    try {
+      await addNote(token, feedbackText.value);
+      feedbackText.value = '';
+      alert('Feedback submitted!');
+    } catch (error) {
+      alert('Failed to submit feedback');
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
+
+  async function submitVoiceFeedback() {
+    if (!audioBlob.value) return;
+
+    isSubmitting.value = true;
+    try {
+      await addAudioNote(token, audioBlob.value);
+      alert('Voice note submitted!');
+    } catch (error) {
+      alert('Failed to submit voice note');
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
+
+  async function submitScreenshot() {
+    await takeScreenshot();
+
+    if (!screenshotBlob.value) return;
+
+    isSubmitting.value = true;
+    try {
+      const files = [
+        {
+          blob: screenshotBlob.value,
+          filename: 'screenshot.png',
+          mimeType: 'image/png',
+        },
+      ];
+      await addMultiFileUpload(token, files);
+      alert('Screenshot submitted!');
+    } catch (error) {
+      alert('Failed to submit screenshot');
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
+</script>
+
+<template>
+  <div class="feedback-widget">
+    <h2>Submit Feedback</h2>
+
+    <!-- Text Feedback -->
+    <div>
+      <textarea
+        v-model="feedbackText"
+        placeholder="Enter your feedback..."
+      ></textarea>
+      <button
+        @click="submitTextFeedback"
+        :disabled="isSubmitting || !feedbackText"
+      >
+        Submit Text
+      </button>
+    </div>
+
+    <!-- Voice Feedback -->
+    <div>
+      <button v-if="!isRecordingVoice" @click="startVoice">
+        Start Voice Recording
+      </button>
+      <button v-else @click="stopVoice">Stop Recording</button>
+      <button
+        v-if="audioBlob"
+        @click="submitVoiceFeedback"
+        :disabled="isSubmitting"
+      >
+        Submit Voice Note
+      </button>
+    </div>
+
+    <!-- Screenshot -->
+    <div>
+      <button @click="submitScreenshot" :disabled="isSubmitting">
+        Take & Submit Screenshot
+      </button>
+    </div>
+  </div>
+</template>
+```
+
+## API Reference
+
+### FileWrapper Interface
+
+The `FileWrapper` interface is used when submitting files:
+
+```typescript
+interface FileWrapper {
+  blob: Blob; // The file data
+  filename: string; // Name of the file (e.g., 'screenshot.png')
+  mimeType?: string; // MIME type (e.g., 'image/png', 'video/webm')
+}
+```
+
+## Error Handling
+
+All submission methods (`addNote`, `addAudioNote`, `addMultiFileUpload`) throw errors on failure. Always wrap them in try-catch blocks:
+
+```typescript
+try {
+  await addNote(token, content);
+} catch (error) {
+  console.error('Submission failed:', error);
+  // Handle error (show user message, retry, etc.)
+}
+```
+
+## License
+
+MIT
