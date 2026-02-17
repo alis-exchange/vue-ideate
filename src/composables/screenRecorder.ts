@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 
 const CONTENT_TYPE_VIDEO = 'video/webm'
+const CONTENT_EXT_VIDEO = '.webm'
 
 /**
  * Composable for recording the user's screen and microphone.

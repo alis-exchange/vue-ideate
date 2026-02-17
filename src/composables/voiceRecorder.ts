@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 
-const CONTENT_TYPE_AUDIO = 'audio/webm'
+export const CONTENT_TYPE_AUDIO = 'audio/webm'
+export const CONTENT_EXT_AUDIO = '.webm'
 
 /**
  * Composable for recording the user's microphone.

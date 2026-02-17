@@ -2,44 +2,64 @@ import { ref } from 'vue'
 import { Buffer } from 'buffer'
 
 /**
+ * Wrapper interface for files to be uploaded to the Ideate service.
+ * 
+ * Encapsulates the file data along with metadata needed for upload operations.
+ */
+export interface FileWrapper {
+  /** The file data as a Blob */
+  blob: Blob,
+  /** The name of the file including extension */
+  filename: string,
+  /** Optional MIME type of the file (e.g., 'audio/webm', 'image/png') */
+  mimeType?: string,
+}
+
+/**
  * Composable for uploading files to the Ideate service.
- * Handles chunked uploading for large files.
+ * 
+ * Implements chunked uploading for large files using a resumable upload protocol.
+ * Files are uploaded in 8 MiB chunks, with support for resuming interrupted uploads
+ * via HTTP 308 (Resume Incomplete) status codes.
+ * 
+ * @returns An object containing the upload function and reactive state for loading/error tracking
  */
 export function useFileUploader() {
   const loadingUploading = ref(false)
   const errorUploading = ref<string | undefined>(undefined)
 
-  async function upload(file: Blob, filename: string, errorMessage?: string): Promise<string | undefined> {
+  /**
+   * Uploads a file to a signed upload URL using chunked, resumable uploads.
+   * 
+   * Implements a resumable upload protocol:
+   * - Files are split into 8 MiB chunks and uploaded sequentially
+   * - Each chunk is sent with Content-Range headers indicating position in the file
+   * - HTTP 308 responses indicate partial success and provide the server's received byte range
+   * - Upload resumes from the last successfully received byte if interrupted
+   * - HTTP 200/201 responses indicate successful completion
+   * 
+   * Automatically manages loading state and error handling.
+   * 
+   * @param url - The signed upload URL (typically obtained from an Ideate RPC call)
+   * @param file - The FileWrapper containing the file data and metadata
+   * @param errorMessage - Optional custom error message to display on failure
+   * @throws {Error} If any chunk upload fails or receives an unexpected status code
+   */
+  async function upload(url: string, file: FileWrapper, errorMessage?: string) {
     loadingUploading.value = true
     errorUploading.value = undefined
     const finalErrorMessage = errorMessage || 'Failed to upload file. Please try again.'
 
     try {
-      // 1. Get Upload URL
-      const safeFilename = encodeURIComponent(filename)
-      const safeMimeType = file.type || 'application/octet-stream'
-      const encodedMimeType = encodeURIComponent(safeMimeType)
-
-      const uploadUrlResponse = await fetch(`https://ideatepublicintake.alisx.com/upload?filename=${safeFilename}&mime-type=${encodedMimeType}`, {
-        method: 'POST',
-      })
-
-      if (!uploadUrlResponse.ok) {
-        throw new Error('Failed to get upload URL')
-      }
-
-      const responseData = await uploadUrlResponse.json()
-      const uploadUrl = responseData.upload_uri
-      const downloadUrl = responseData.download_uri
 
       // 2. Upload File in chunks
       const FILE_UPLOAD_CHUNK_SIZE = 8 * 1024 * 1024 // 8 MiB
-      const totalSize = file.size
+      const totalSize = file.blob.size
       let start = 0
 
       while (start < totalSize) {
         const end = Math.min(start + FILE_UPLOAD_CHUNK_SIZE, totalSize)
-        const chunk = file.slice(start, end)
+        const chunk = file.blob.slice(start, end)
         const arrayBuffer = await chunk.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
 
@@ -48,7 +68,7 @@ export function useFileUploader() {
           'Content-Range': `bytes ${start}-${end - 1}/${totalSize}`,
         })
 
-        const response = await fetch(uploadUrl, {
+        const response = await fetch(url, {
           method: 'PUT',
           headers: headers,
           body: buffer,
@@ -74,7 +94,7 @@ export function useFileUploader() {
         }
       }
 
-      return downloadUrl
+      return
     } catch (e) {
       console.error(e)
       errorUploading.value = finalErrorMessage
@@ -87,16 +107,13 @@ export function useFileUploader() {
 
   return {
     /**
-     * Uploads a file (as a Blob) to the Ideate service.
-     * @param file The file blob to upload.
-     * @param filename The name of the file.
-     * @param errorMessage An optional custom error message.
-     * @returns A promise that resolves with the download URL of the uploaded file.
+     * Uploads a file to a signed upload URL using chunked, resumable uploads.
+     * See function documentation above for details on the upload protocol.
      */
     upload,
-    /** A reactive boolean indicating if an upload is in progress. */
+    /** Reactive boolean indicating if an upload is currently in progress */
     loadingUploading,
-    /** A reactive string holding the last upload error message, if any. */
+    /** Reactive string containing the last upload error message, or undefined if no error */
     errorUploading,
   }
 }
