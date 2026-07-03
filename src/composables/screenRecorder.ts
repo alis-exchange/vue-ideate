@@ -3,10 +3,27 @@ import { computed, ref } from 'vue'
 const CONTENT_TYPE_VIDEO = 'video/webm'
 const CONTENT_EXT_VIDEO = '.webm'
 
+/** Which surface the browser's screen-picker should steer the user toward. */
+export type ScreenCaptureSurface = 'screen' | 'tab'
+
+export interface UseScreenRecorderOptions {
+  /**
+   * Which surface the browser's screen-picker should steer the user toward.
+   *
+   * - `'screen'` (default): request the entire screen, so the recording can
+   *   capture the user's process outside of this application. The current
+   *   browser tab is still selectable in the picker.
+   * - `'tab'`: lock the picker to the current browser tab (the previous
+   *   behaviour), for recordings that only need to capture this app.
+   */
+  captureSurface?: ScreenCaptureSurface
+}
+
 /**
  * Composable for recording the user's screen and microphone.
  */
-export function useScreenRecorder() {
+export function useScreenRecorder(options: UseScreenRecorderOptions = {}) {
+  const { captureSurface = 'screen' } = options
   const isRecording = ref(false)
   const recordingDuration = ref(0)
   const recordingTimer = ref<number | undefined>(undefined)
@@ -48,17 +65,26 @@ export function useScreenRecorder() {
    */
   async function start() {
     try {
-      const displayStream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          displaySurface: 'browser',
-          width: { max: 1280 },
-          height: { max: 720 },
-        },
-        preferCurrentTab: true,
-        selfBrowserSurface: 'include',
-        surfaceSwitching: 'include',
-        monitorTypeSurfaces: 'exclude',
-      } as never)
+      // `preferCurrentTab` together with `monitorTypeSurfaces: 'exclude'` locks
+      // the picker to the current tab. For full-screen capture we drop both so
+      // whole monitors are offered (and preferred) while the current tab stays
+      // selectable.
+      const displayMediaOptions =
+        captureSurface === 'tab'
+          ? {
+              video: { displaySurface: 'browser', width: { max: 1280 }, height: { max: 720 } },
+              preferCurrentTab: true,
+              selfBrowserSurface: 'include',
+              surfaceSwitching: 'include',
+              monitorTypeSurfaces: 'exclude',
+            }
+          : {
+              video: { displaySurface: 'monitor', width: { max: 1280 }, height: { max: 720 } },
+              selfBrowserSurface: 'include',
+              surfaceSwitching: 'include',
+              monitorTypeSurfaces: 'include',
+            }
+      const displayStream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions as never)
       const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true })
 
       // --- Audio analysis ---
