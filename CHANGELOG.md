@@ -1,6 +1,12 @@
+
+# [2.1.0](https://github.com/alis-exchange/vue-ideate/compare/v2.0.0...v2.1.0) (2026-07-03)
+
+
+### Features
+
+* add ability to share full screen and not just tab ([8ec3196](https://github.com/alis-exchange/vue-ideate/commit/8ec3196ad66164db0e4c59d79ceb5460f9464f25))
+
 # [2.0.0](https://github.com/alis-exchange/vue-ideate/compare/v1.3.0...v2.0.0) (2026-02-17)
-
-
 
 # [1.3.0](https://github.com/alis-exchange/vue-ideate/compare/v1.2.0...v1.3.0) (2026-01-14)
 
@@ -10,8 +16,6 @@
 * add multiple media urls ([92fcede](https://github.com/alis-exchange/vue-ideate/commit/92fcedef85c0274ce2d5f3218c46cac3b46cc857))
 * enhance feedback submission with simpler, more customizable open method ([42f0f15](https://github.com/alis-exchange/vue-ideate/commit/42f0f1520d777b614ac24bf6ea51776fa9b5a817))
 
-
-
 ## [1.1.2](https://github.com/alis-exchange/vue-ideate/compare/v1.1.1...v1.1.2) (2025-12-10)
 
 
@@ -19,8 +23,6 @@
 
 * add voice recording functionality and volume monitoring ([2e38478](https://github.com/alis-exchange/vue-ideate/commit/2e38478529436be8f3b7b1e28de147e0416281bd))
 * add voice recording functionality and volume monitoring ([b05494e](https://github.com/alis-exchange/vue-ideate/commit/b05494ed55aee2ffd70184b35e70e77000424018))
-
-
 
 ## [1.1.1](https://github.com/alis-exchange/vue-ideate/compare/v1.1.0...v1.1.1) (2025-12-10)
 
@@ -30,8 +32,6 @@
 * add types ([4b0a86c](https://github.com/alis-exchange/vue-ideate/commit/4b0a86c1e7474c66146e2adeddada179a7f36d6c))
 * add types ([751bf75](https://github.com/alis-exchange/vue-ideate/commit/751bf754bc62f48d10b80ceb6464b3bc6c245ece))
 
-
-
 # [1.1.0](https://github.com/alis-exchange/vue-ideate/compare/v1.0.7...v1.1.0) (2025-12-10)
 
 
@@ -40,8 +40,6 @@
 * refactor composables and remove encoder; add ideate composable for feedback management ([0e1e1b9](https://github.com/alis-exchange/vue-ideate/commit/0e1e1b9fe04e275909530636b3c7874441e3d0f8))
 * refactor composables and remove encoder; add ideate composable for feedback management ([f47ada2](https://github.com/alis-exchange/vue-ideate/commit/f47ada287505797823e326e21e5096ae1933a4b0))
 
-
-
 ## [1.0.7](https://github.com/alis-exchange/vue-ideate/compare/v1.0.6...v1.0.7) (2025-12-10)
 
 
@@ -49,8 +47,6 @@
 
 * fix gh action ([231b1d4](https://github.com/alis-exchange/vue-ideate/commit/231b1d4b8686b5ccac513d1f5e449f2f80266fd3))
 * fix publish ([8f6d82d](https://github.com/alis-exchange/vue-ideate/commit/8f6d82d0441792c62e2b2163918376b7ca535a48))
-
-
 
 ## [1.0.5](https://github.com/alis-exchange/vue-ideate/compare/a0799f618c164a6ca0dc02d020fd4369f5a9f6ec...v1.0.5) (2025-12-10)
 
@@ -76,6 +72,3 @@
 * Rename package to `@alis-build/vue-ideate`, add Apache-2.0 license, and set up automated npm publishing workflow. ([ff297b7](https://github.com/alis-exchange/vue-ideate/commit/ff297b7fba10c5efac7f729ee99509910e58e2bb))
 * update open function to accept opts parameter for URL generation ([414742b](https://github.com/alis-exchange/vue-ideate/commit/414742be4efe364ca05ebc5f9b2830a8c99b2715))
 * update useIdeateFeedback to accept opts parameter for URL generation ([1c14e9c](https://github.com/alis-exchange/vue-ideate/commit/1c14e9cc8e8ee8ad8c291914436a0e5a011083e9))
-
-
-
